@@ -284,44 +284,49 @@
       color: #ffffff !important;
     }
 
-    /* Phone input group - matching theme */
-    .phone-input-group {
-      display: flex;
-      align-items: center;
-      background: #0B1623;
-      border: 1px solid #2a4055;
-      border-radius: 12px;
-      margin: 8px 0;
-      overflow: hidden;
-    }
+    /* Phone input group - fixed alignment */
+.phone-input-group {
+  display: flex;
+  align-items: center;
+  background: #0B1623;
+  border: 1px solid #2a4055;
+  border-radius: 12px;
+  margin: 8px 0;
+  overflow: hidden;
+  height: 48px;
+}
 
-    .phone-prefix {
-      padding: 0 12px;
-      color: #1FE08B;
-      font-size: 1rem;
-      background: #142a3c;
-      height: 48px;
-      display: flex;
-      align-items: center;
-      border-right: 1px solid #2a4055;
-      font-weight: 500;
-    }
+.phone-prefix {
+  padding: 0 12px;
+  color: #1FE08B;
+  font-size: 1rem;
+  background: #142a3c;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid #2a4055;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+}
 
-    .phone-input-group input {
-      flex: 1;
-      background: transparent !important;
-      border: none !important;
-      padding: 12px 16px !important;
-      margin: 0 !important;
-      color: #ffffff !important;
-      font-size: 16px !important;
-      height: 48px;
-    }
+.phone-input-group input {
+  flex: 1;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 16px !important;
+  margin: 0 !important;
+  color: #ffffff !important;
+  font-size: 16px !important;
+  height: 100%;
+  line-height: 1;
+}
 
-    .phone-input-group input:focus {
-      outline: none !important;
-      box-shadow: none !important;
-    }
+.phone-input-group input:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
 
     /* Summary box */
     .summary-box {
